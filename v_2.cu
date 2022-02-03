@@ -11,6 +11,8 @@ __global__ void v_2(int* read, int* write, int n, int moments_per_thread_sqrt);
 
 int main() {
 
+    // pretty similar with the v_1, but now we have b
+
     int nV[] = { 1024, 4000, 8000, 12000, 16000 };
     int kV[] = { 10, 28, 30, 32, 35 };
     int bV[] = { 2, 3, 4, 5, 6, 7, 8};
@@ -74,6 +76,8 @@ int main() {
 
                /*** CALCUALTE ***/
 
+               // 2D grid and blocks so it matches exactly our lattice
+
                dim3 dimBlock(threads_per_block_sqrt, threads_per_block_sqrt);
                dim3 dimGrid(num_blocks_sqrt, num_blocks_sqrt);
 
@@ -133,11 +137,17 @@ int main() {
 
 __global__ void v_2(int* read, int* write, int n, int moments_per_thread_sqrt) {
 
+    // indexing the 2D grid and block
+
     int thread_id_x = blockIdx.x * blockDim.x + threadIdx.x;
     int thread_id_y = blockIdx.y * blockDim.y + threadIdx.y;
 
+    // don't forget that we have thread_id_y * moments_per_thread_sqrt behind us
+
     int thread_i = thread_id_y * moments_per_thread_sqrt;
     int thread_j = thread_id_x * moments_per_thread_sqrt;
+
+    // now it's the all same as v_1,v_0
 
     for(int i = thread_i; i < thread_i + moments_per_thread_sqrt; ++i) {
         for(int j = thread_j; j < thread_j + moments_per_thread_sqrt; ++j) {

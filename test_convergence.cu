@@ -2,6 +2,10 @@
 #include <stdlib.h>
 #include <sys/time.h>
 
+/** its the v_1 but for every k it computes the state
+ *  at k+2 to see if they are the same state
+ */
+
 
 __global__ void v_1(int* read, int* write, int n);
 
@@ -23,9 +27,11 @@ int main() {
     int* h_lattice_1 = (int *) calloc( size, sizeof(int));
     int* h_lattice_2 = (int *) calloc( size, sizeof(int));
     int* lattice_k = (int *) calloc( size, sizeof(int));
-    int* lattice_k_plus_2 = (int *) calloc( size, sizeof(int));
+    int* lattice_k_plus_2 = (int *) calloc( size, sizeof(int)); // for the k+2 state
 
     srand((unsigned int)time(NULL));
+
+    //do it a bunch of times because for the same n we might have different k
 
     for(int iterations=0; iterations < 5; ++iterations) {
 
@@ -46,6 +52,7 @@ int main() {
         }
         */
 
+        // do it for some k
         for(k=28; k < 36; ++k) {
 
             int *d_read;
@@ -87,6 +94,8 @@ int main() {
 
             cudaMemcpy(lattice_k, temp, d_lattice_size, cudaMemcpyDeviceToHost);
 
+            // now compute the k+2 state
+
             for (int i = 0; i < 2; ++i) {
 
                 v_1<<< num_blocks, threads_per_block >>>(d_read, d_write, n);
@@ -124,6 +133,8 @@ int main() {
             }
             */
 
+            // it counts how many values of the k and the k+2 state are not the same
+
             int error_counter = 0;
 
             for (int i = 0; i < n; ++i) {
@@ -134,12 +145,12 @@ int main() {
             }
 
 
-
+            // if they are the same then got our right k, so brake
             if( error_counter == 0) {
                 printf("%d\n", k);
                 break;
             }
-            
+
 
             //printf("\nthere are %d errors\n", error_counter);
 

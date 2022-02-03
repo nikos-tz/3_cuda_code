@@ -11,6 +11,8 @@ __global__ void v_3(int* read, int* write, int n, int threads_per_block_sqrt, in
 
 int main() {
 
+    // same as v_2, but we are using shared memory
+
     int nV[] = { 1024, 4000, 8000, 12000, 16000 };
     int kV[] = { 10, 28, 30, 32, 35 };
     int bV[] = { 2, 4, 8 };
@@ -77,12 +79,18 @@ int main() {
                 dim3 dimBlock(threads_per_block_sqrt, threads_per_block_sqrt);
                 dim3 dimGrid(num_blocks_sqrt, num_blocks_sqrt);
 
+                // dimension of the 2D shared memory array
+
                 int shared_dim = (threads_per_block_sqrt * moments_per_thread_sqrt) + 2;
 
 
                 gettimeofday(&start, NULL); //Start timing the computation
 
                 for (int i = 0; i < k; ++i) {
+
+                    /** the 3rd value into the <<< >>> is the shared memory we will
+                     * use in bytes it is *2 because we will use 2 of them
+                     */
 
                     v_3<<< dimGrid, dimBlock, 2 * shared_dim*shared_dim * sizeof(int) >>>
                         (d_read, d_write, n, threads_per_block_sqrt, moments_per_thread_sqrt);
@@ -136,14 +144,17 @@ int main() {
 
 __global__ void v_3(int* read, int* write, int n, int threads_per_block_sqrt, int moments_per_thread_sqrt) {
 
-    //printf("hello\n");
+
 
     int shared_dim = (threads_per_block_sqrt * moments_per_thread_sqrt) + 2;
 
+    // extern because its size is not known at compile time
     extern __shared__ int shared[];
+    // split the memory in two arrays
+    int* read_shared = shared; // it is looking at the first one
+    int* write_shared = (int*) &shared[shared_dim * shared_dim]; // it is looking at the second one
 
-    int* read_shared = shared;
-    int* write_shared = (int*) &shared[shared_dim * shared_dim];
+    // indexing both the global and the shared arrays
 
     int thread_id_x = blockIdx.x * blockDim.x + threadIdx.x;
     int thread_id_y = blockIdx.y * blockDim.y + threadIdx.y;
@@ -154,13 +165,11 @@ __global__ void v_3(int* read, int* write, int n, int threads_per_block_sqrt, in
     int shared_i = threadIdx.y * moments_per_thread_sqrt;
     int shared_j = threadIdx.x * moments_per_thread_sqrt;
 
-    /*
-    read_shared[0] = 0;                             read_shared[shared_dim-1] = 0;
-    read_shared[shared_dim * (shared_dim-1)] = 0;   read_shared[(shared_dim*shared_dim) -1] = 0;
-
-    write_shared[0] = 0;                             write_shared[shared_dim-1] = 0;
-    write_shared[shared_dim * (shared_dim-1)] = 0;   write_shared[(shared_dim*shared_dim) -1] = 0;
-    */
+    /** now give values for the outer part of the shared array
+     *  this part is going to be computed from the other blocks
+     *  4 if statements because our square matrix has 4 sides
+     *  and each if gets the values from the neighbors from one side
+     */
 
     if( threadIdx.y == 0) {
 
@@ -210,6 +219,11 @@ __global__ void v_3(int* read, int* write, int n, int threads_per_block_sqrt, in
 
     int i_host = thread_i;
 
+    /** now get the values for the inner part of the shared matrix
+     *  this part will be computed from this block
+     */
+
+
     for(int i = (shared_i + 1); i < (shared_i + 1 + moments_per_thread_sqrt); ++i) {
 
         int j_host = thread_j;
@@ -223,7 +237,13 @@ __global__ void v_3(int* read, int* write, int n, int threads_per_block_sqrt, in
         ++i_host;
     }
 
-    __syncthreads();
+    __syncthreads(); // synchronize all threads
+
+    /** now compute each thread computes its values
+     *  note that we dont need to check for periodic
+     *  boundary conditions because we already did that
+     *  when whe got the outer part of the matrix
+     */
 
 
     for(int i = (shared_i + 1); i < (shared_i + 1 + moments_per_thread_sqrt); ++i) {
@@ -242,6 +262,8 @@ __global__ void v_3(int* read, int* write, int n, int threads_per_block_sqrt, in
 
 
     i_host = thread_i;
+
+    // now put the values from shared to global memory
 
     for(int i = (shared_i + 1); i < (shared_i + 1 + moments_per_thread_sqrt); ++i) {
 
