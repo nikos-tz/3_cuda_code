@@ -7,5 +7,5 @@ and then for run:
 ./outPutFile.out
 
 
-if its v_0.c just use gcc instade of nvcc
+if it's v_0.c just use gcc instade of nvcc
 
