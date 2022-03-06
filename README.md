@@ -11,25 +11,25 @@ The magnetic moment gets the value of the majority of the spins of its neighbors
 \
 `sign(G[i-1,j] + G[i,j-1] + G[i,j] + G[i+1,j] + G[i,j+1])`
 \
-\
+
 ## V0. Sequential
 \
-\
+
 Write the sequential version, in C to simulate an Ising model of size nxn for k iterations, staring from a uniform random initial state. The size n and number of iterations k are given. Make sure to avoid if statements for the boundaries. Use two arrays, read from one and write to the other, then swap the pointers for the next iteration. Do not check if changes are made. Persuade yourself and us that your code works correctly with reasonable arguments and tests!
 \
-\
+
 ## V1. GPU with one thread per moment
 \
 \
 Modify the sequential code to make a kernel function and call the kernel with a grid that matches the Ising model and one thread per moment. Confirm that works correctly by matching it to the result of the sequential run.
 \
-\
+
 ## V2. GPU with one thread computing a block of moments
 \
 \
 Assign more work per thread, but in preparation for the next request, make each thread to compute a block of moments. Explore what block size is fastest. Confirm that your code works correctly by matching it to the result of the sequential and V1 runs.
 \
-\
+
 ## V3. GPU with multiple thread sharing common input moments
 \
 \
