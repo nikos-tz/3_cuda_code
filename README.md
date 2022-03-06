@@ -19,23 +19,23 @@ Write the sequential version, in C to simulate an Ising model of size nxn for k 
 \
 
 ## V1. GPU with one thread per moment
-\
-\
+
+
 Modify the sequential code to make a kernel function and call the kernel with a grid that matches the Ising model and one thread per moment. Confirm that works correctly by matching it to the result of the sequential run.
 \
 
 ## V2. GPU with one thread computing a block of moments
-\
-\
+
+
 Assign more work per thread, but in preparation for the next request, make each thread to compute a block of moments. Explore what block size is fastest. Confirm that your code works correctly by matching it to the result of the sequential and V1 runs.
 \
 
 ## V3. GPU with multiple thread sharing common input moments
-\
-\
+
+
 Use shared memory so that threads do not read multiple times from the main memory but from the shared memory. Confirm that works correctly by matching it to the result of the sequential V1, and V2 runs.
-
-
+\
+\
 for compile:
 \
 `nvcc -o program.out source.cu`
