@@ -13,7 +13,7 @@ The magnetic moment gets the value of the majority of the spins of its neighbors
 \
 
 ## V0. Sequential
-\
+
 
 Write the sequential version, in C to simulate an Ising model of size nxn for k iterations, staring from a uniform random initial state. The size n and number of iterations k are given. Make sure to avoid if statements for the boundaries. Use two arrays, read from one and write to the other, then swap the pointers for the next iteration. Do not check if changes are made. Persuade yourself and us that your code works correctly with reasonable arguments and tests!
 \
